@@ -7,7 +7,7 @@
   "scripts": {
     "test": "npm run --silent lint && npm run functional-testing",
     "lint": "eslint --max-warnings=0 ./lib ./features",
-    "functional-testing": "bash run-features.sh"
+    "functional-testing": "./node_modules/.bin/cucumber-js"
   },
   "repository": {
     "type": "git",
@@ -24,13 +24,14 @@
   },
   "homepage": "https://github.com/kuzzleio/kuzzle-plugin-alerting#readme",
   "devDependencies": {
-    "cucumber": "^5.0.1",
+    "cucumber": "^5.1.0",
     "eslint": "^5.6.0",
-    "kuzzle-sdk": "^5.0.13",
+    "kuzzle-sdk": "^6.1.4",
     "nexpect": "^0.5.0"
   },
   "dependencies": {
     "passport": "^0.4.0",
-    "passport-local": "^1.0.0"
+    "passport-local": "^1.0.0",
+    "should": "^13.2.3"
   }
 }

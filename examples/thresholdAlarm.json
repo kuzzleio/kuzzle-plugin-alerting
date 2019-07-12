@@ -1,0 +1,12 @@
+{
+  "name": "threshold example",
+  "filterId": null,
+  "condition": {
+    "type": "threshold",
+    "index": "a-customer",
+    "collection": "temperature",
+    "filter":{
+      "range" : { "data.temperature": { "gt" : 35 } }
+    }
+  }
+}

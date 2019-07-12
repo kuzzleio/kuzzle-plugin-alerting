@@ -1,51 +1,44 @@
+'use strict';
+
 const
-  {
-    BeforeAll,
-    After
-  } = require('cucumber'),
-  Kuzzle = require('kuzzle-sdk'),
-  KWorld = require('./world'),
-  { spawnSync } = require('child_process');
+  { After, Before, BeforeAll } = require('cucumber'),
+  { Kuzzle, WebSocket } = require('kuzzle-sdk'),
+  // testMappings = require('../fixtures/mappings'),
+  // testFixtures = require('../fixtures/fixtures'),
+  World = require('./world');
 
-BeforeAll(function(callback) {
-  let maxTries = 10;
-  let connected = false;
-  let curl;
+BeforeAll(async function () {
+  const
+    world = new World({ });
 
-  const world = new KWorld();
+  world.kuzzle = new Kuzzle(
+    new WebSocket(world.host, { port: world.port })
+  );
+});
 
-  while (! connected && maxTries > 0) {
-    curl = spawnSync('curl', [`${world.host}:${world.port}`]);
+Before(async function () {
+  // const
+  //   fixtures = Object.assign({}, testFixtures),
+  //   mappings = Object.assign({}, testMappings);
 
-    if (curl.status === 0) {
-      connected = true;
-    } else {
-      console.log(`[${maxTries}] Waiting for kuzzle..`);
-      maxTries -= 1;
-      spawnSync('sleep', ['5']);
-    }
-  }
+  this.kuzzle = new Kuzzle(
+    new WebSocket(this.host, { port: this.port })
+  );
 
-  if (!connected) {
-    return callback(new Error('Unable to start docker-compose stack'));
-  }
+  await this.kuzzle.connect();
 
-  const kuzzle = new Kuzzle(world.host, { port: world.port }, error => {
-    if (error) {
-      return callback(error);
-    }
-
-    kuzzle
-      .createIndexPromise('test-index')
-      .then(() => kuzzle.collection('test-collection', 'test-index').createPromise())
-      .then(() => callback())
-      .catch(err => callback(err))
-      .finally(() => kuzzle.disconnect());
+  await this.kuzzle.query({
+    controller: 'admin',
+    action: 'resetDatabase',
+    refresh: 'wait_for'
   });
+});
 
-  After(function () {
-    if (this.kuzzle && typeof this.kuzzle.disconnect === 'function') {
-      this.kuzzle.disconnect();
-    }
-  });
+After(async function () {
+  // Clean values stored by the scenario
+  this.props = {};
+
+  if (this.kuzzle && typeof this.kuzzle.disconnect === 'function') {
+    this.kuzzle.disconnect();
+  }
 });
