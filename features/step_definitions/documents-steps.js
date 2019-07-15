@@ -51,8 +51,8 @@ Given('this alarm with the following action:', async function (table) {
 });
 
 When('A document is created in {string}:{string} with a body containing:', async function (index, collection, table) {
-  const data = JSON.parse(table.rowsHash().data);
-  await this.kuzzle.document.create(index, collection, { data: data });
+  const data = _parseTable(table.rowsHash());
+  await this.kuzzle.document.create(index, collection, data);
 });
 
 /**
@@ -79,5 +79,16 @@ Then('A document should be created in {string}:{string} with the following body 
 
 function _sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Improves rowsHash function by considering nested JSON
+ * @param table result of rowsHash() function
+ */
+function _parseTable(table) {
+  for (const key of Object.getOwnPropertyNames(table)) {
+    table[key] = JSON.parse(table[key]);
+  }
+  return table;
 }
 

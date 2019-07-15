@@ -2,10 +2,9 @@
 
 const
   { After, Before, BeforeAll } = require('cucumber'),
-  { Kuzzle, WebSocket } = require('kuzzle-sdk'),
+  { Kuzzle, WebSocket } = require('kuzzle-sdk');
   // testMappings = require('../fixtures/mappings'),
   // testFixtures = require('../fixtures/fixtures'),
-  World = require('./world');
 
 BeforeAll(async function () {
 });

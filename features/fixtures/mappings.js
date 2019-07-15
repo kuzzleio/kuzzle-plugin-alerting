@@ -34,10 +34,10 @@ module.exports = {
       'filter': {
         'type': 'percolator'
       },
-      "scope": {
+      'scope': {
         'type': 'text'
       },
-      "duration": {
+      'duration': {
         'type': 'text'
       }
     }
@@ -62,4 +62,4 @@ module.exports = {
       }
     }
   }
-}
+};
