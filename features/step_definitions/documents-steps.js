@@ -19,7 +19,7 @@ Given('An existing {string}:{string} index and collection', async function (inde
   this.props.collection = collection;
 });
 
-Given('A {string}:{string} index and collection', async function (index, collection) {
+Given('a {string}:{string} index and collection', async function (index, collection) {
   await this.kuzzle.index.create(index);
   await this.kuzzle.collection.create(index, collection);
 
@@ -27,32 +27,49 @@ Given('A {string}:{string} index and collection', async function (index, collect
   this.props.collection = collection;
 });
 
-Given('A {string}:{string} collection', async function (index, collection) {
+Given('a {string}:{string} collection', async function (index, collection) {
   await this.kuzzle.collection.create(index, collection);
 });
 
-Given('an alarm named {string} with the following condition:', async function (name, table) {
-  const condition = table.rowsHash();
-  condition.filter = JSON.parse(condition.filter);
-  this.props.alarm = {
-    name: name,
-    condition: condition
-  };
+Given('an alarm named {string}', async function (name) {
+  this.props.alarm.name = name;
 });
 
-Given('this alarm with the following action:', async function (table) {
+Given('the following condition for this alarm:', async function (table) {
+  const condition = table.rowsHash();
+  condition.filter = JSON.parse(condition.filter);
+  this.props.alarm.condition = condition;
+});
+
+Given('the following action for this alarm:', async function (table) {
   if (!this.props.alarm.actions) {
     this.props.alarm.actions = [];
   }
   const action = JSON.parse(table.rowsHash().action);
   this.props.alarm.actions.push(action);
-
-  await this.kuzzle.document.create(this.props.index, this.props.collection, this.props.alarm, null, { refresh: 'wait_for' });
 });
 
-When('A document is created in {string}:{string} with a body containing:', async function (index, collection, table) {
+Given('a certain number of documents in {string}:{string}', async function (index, collection) {
+  this.props[`${index}:${collection}`] = await this.kuzzle.document.count(index, collection);
+});
+
+When('I create this alarm', async function () {
+  try {
+    const res = await this.kuzzle.document.create(this.props.index, this.props.collection, this.props.alarm, undefined, { refresh: 'wait_for' });
+    this.props.alarmId = res._id;
+  } catch (e) {
+    this.error = e;
+  }
+});
+
+When('a document is created in {string}:{string} with a body containing:', async function (index, collection, table) {
   const data = _parseTable(table.rowsHash());
   await this.kuzzle.document.create(index, collection, data);
+});
+
+
+When('I delete this alarm', async function () {
+  await this.kuzzle.document.delete(this.props.index, 'alarms', this.props.alarmId);
 });
 
 /**
@@ -61,7 +78,7 @@ When('A document is created in {string}:{string} with a body containing:', async
  * We wait max 4000ms before throwing an error cause the timeout limit is fixed at 5000ms by Cucumber.
  * After that, the test will automatically fail.
  */
-Then('A document should be created in {string}:{string} with the following body {string}', async function (index, collection, body) {
+Then('a document should be created in {string}:{string} with the following body {string}', async function (index, collection, body) {
   let receivedNotif;
   body = JSON.parse(body);
 
@@ -76,6 +93,22 @@ Then('A document should be created in {string}:{string} with the following body 
     should(receivedNotif.result._source).have.properties(body);
   }
 });
+
+Then(/I should get an Error (?:with status (.*))?/, async function (status) {
+  should(this.error).not.be.null;
+  if (this.error && status) {
+    should(this.error.status).be.eql(parseInt(status));
+  }
+});
+
+Then(/It should(n't)? increment the number of documents in '(.*)':'(.*)'/, async function (negation, index, collection) {
+  const res = await this.kuzzle.document.count(index, collection),
+    expected = negation ? this.props[`${index}:${collection}`] : this.props[`${index}:${collection}`] + 1;
+  should(res).be.eql(expected);
+});
+
+
+// === Utils ===
 
 function _sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));

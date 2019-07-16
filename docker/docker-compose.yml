@@ -2,13 +2,14 @@ version: '3'
 
 services:
   kuzzle:
-    image: kuzzleio/plugin-dev:${KUZZLE_DOCKER_TAG:-latest}
+    image: kuzzleio/plugin-dev:develop
     command: /run-dev.sh
     volumes:
       - "./run-dev.sh:/run-dev.sh"
       - "./install-plugins.sh:/install-plugins.sh"
       - "./pm2.json:/config/pm2.json"
       - "..:/var/app/plugins/enabled/${PLUGIN_NAME:-alerting}"
+      - "./.kuzzlerc:/var/app/.kuzzlerc"
     cap_add:
       - SYS_PTRACE
     ulimits:
@@ -27,7 +28,6 @@ services:
       - kuzzle_services__memoryStorage__node__host=redis
       - NODE_ENV=development
       - DEBUG=kuzzle:plugins
-      - KUZZLE_DOCKER_TAG=develop
 
   redis:
     image: redis:5

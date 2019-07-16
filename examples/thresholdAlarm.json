@@ -3,10 +3,23 @@
   "filterId": null,
   "condition": {
     "type": "threshold",
-    "index": "a-customer",
+    "index": "customer-index",
     "collection": "temperature",
     "filter":{
       "range" : { "data.temperature": { "gt" : 35 } }
     }
-  }
+  },
+  "actions": [
+    { "type": "api",
+      "request": {
+        "controller": "document",
+        "action": "create",
+        "index": "customer-index",
+        "collection": "triggeredAlarm",
+        "body":{
+          "message": "It's hot {data.temperature.value} {data.temperature.unit}"
+        }
+      }
+    }
+  ]
 }

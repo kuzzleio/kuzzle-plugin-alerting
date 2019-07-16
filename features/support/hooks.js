@@ -24,9 +24,6 @@ Before(async function () {
 });
 
 After(async function () {
-  // Clean values stored by the scenario
-  this.props = {};
-
   if (this.kuzzle && typeof this.kuzzle.disconnect === 'function') {
     this.kuzzle.disconnect();
   }
