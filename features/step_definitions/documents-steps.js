@@ -31,45 +31,13 @@ Given('a {string}:{string} collection', async function (index, collection) {
   await this.kuzzle.collection.create(index, collection);
 });
 
-Given('an alarm named {string}', async function (name) {
-  this.props.alarm.name = name;
-});
-
-Given('the following condition for this alarm:', async function (table) {
-  const condition = table.rowsHash();
-  condition.filter = JSON.parse(condition.filter);
-  this.props.alarm.condition = condition;
-});
-
-Given('the following action for this alarm:', async function (table) {
-  if (!this.props.alarm.actions) {
-    this.props.alarm.actions = [];
-  }
-  const action = JSON.parse(table.rowsHash().action);
-  this.props.alarm.actions.push(action);
-});
-
 Given('a certain number of documents in {string}:{string}', async function (index, collection) {
   this.props[`${index}:${collection}`] = await this.kuzzle.document.count(index, collection);
-});
-
-When('I create this alarm', async function () {
-  try {
-    const res = await this.kuzzle.document.create(this.props.index, this.props.collection, this.props.alarm, undefined, { refresh: 'wait_for' });
-    this.props.alarmId = res._id;
-  } catch (e) {
-    this.error = e;
-  }
 });
 
 When('a document is created in {string}:{string} with a body containing:', async function (index, collection, table) {
   const data = _parseTable(table.rowsHash());
   await this.kuzzle.document.create(index, collection, data);
-});
-
-
-When('I delete this alarm', async function () {
-  await this.kuzzle.document.delete(this.props.index, 'alarms', this.props.alarmId);
 });
 
 /**
