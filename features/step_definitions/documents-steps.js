@@ -4,7 +4,8 @@ const
     Given,
     When,
     Then
-  } = require('cucumber');
+  } = require('cucumber'),
+  helpers = require('./steps-helpers');
 
 Given('An existing {string}:{string} index and collection', async function (index, collection) {
   if (!await this.kuzzle.index.exists(index)) {
@@ -20,8 +21,13 @@ Given('An existing {string}:{string} index and collection', async function (inde
 });
 
 Given('a {string}:{string} index and collection', async function (index, collection) {
-  await this.kuzzle.index.create(index);
-  await this.kuzzle.collection.create(index, collection);
+  if (!await this.kuzzle.index.exists(index)) {
+    await this.kuzzle.index.create(index);
+  }
+
+  if (!await this.kuzzle.collection.exists(index, collection)) {
+    await this.kuzzle.collection.create(index, collection);
+  }
 
   this.props.index = index;
   this.props.collection = collection;
@@ -35,9 +41,16 @@ Given('a certain number of documents in {string}:{string}', async function (inde
   this.props[`${index}:${collection}`] = await this.kuzzle.document.count(index, collection);
 });
 
-When('a document is created in {string}:{string} with a body containing:', async function (index, collection, table) {
-  const data = _parseTable(table.rowsHash());
-  await this.kuzzle.document.create(index, collection, data);
+When(/a (timestamped )?document is created in '(.*)':'(.*)' with a body containing:/, async function (timed, index, collection, table) {
+  const data = helpers._parseTable(table.rowsHash());
+  if (timed) {
+    data.timestamp = Date.now();
+  }
+  await this.kuzzle.document.create(index, collection, data, undefined, { refresh: 'wait_for' });
+});
+
+When(/I wait for (\d+) second(?:s)?/, async function (ms) {
+  await helpers._sleep(ms);
 });
 
 /**
@@ -52,7 +65,7 @@ Then('a document should be created in {string}:{string} with the following body 
 
   await this.kuzzle.realtime.subscribe(index, collection, {}, notif => { receivedNotif = notif; });
   for (let i = 40; i > 0 & !receivedNotif; i--) {
-    await _sleep(100);
+    await helpers._sleep(100);
   }
 
   if (!receivedNotif) {
@@ -74,22 +87,3 @@ Then(/It should(n't)? increment the number of documents in '(.*)':'(.*)'/, async
     expected = negation ? this.props[`${index}:${collection}`] : this.props[`${index}:${collection}`] + 1;
   should(res).be.eql(expected);
 });
-
-
-// === Utils ===
-
-function _sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-/**
- * Improves rowsHash function by considering nested JSON
- * @param table result of rowsHash() function
- */
-function _parseTable(table) {
-  for (const key of Object.getOwnPropertyNames(table)) {
-    table[key] = JSON.parse(table[key]);
-  }
-  return table;
-}
-

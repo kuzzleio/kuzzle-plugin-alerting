@@ -2,8 +2,8 @@
 
 const
   { After, Before, BeforeAll } = require('cucumber'),
-  { Kuzzle, WebSocket } = require('kuzzle-sdk');
-  // testMappings = require('../fixtures/mappings'),
+  { Kuzzle, WebSocket } = require('kuzzle-sdk'),
+  testMappings = require('../fixtures/mappings');
   // testFixtures = require('../fixtures/fixtures'),
 
 BeforeAll(async function () {
@@ -20,6 +20,13 @@ Before(async function () {
     controller: 'admin',
     action: 'resetDatabase',
     refresh: 'wait_for'
+  });
+
+  await this.kuzzle.query({
+    controller: 'admin',
+    action: 'loadMappings',
+    refresh: 'wait_for',
+    body: testMappings
   });
 });
 

@@ -1,0 +1,41 @@
+{
+  "name": "no logout for too long",
+  "condition": {
+    "type": "idle",
+    "index": "customer-index",
+    "collection": "devices",
+    "query": {
+      "bool": {
+        "should": [
+          {
+            "bool": {
+              "must": {
+                "match_phrase_prefix": {
+                  "device.id": "sfa-A113"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "time": {
+    "field": "timestamp",
+    "duration": "1000"
+  },
+  "actions": [
+    { "type": "api",
+      "request": {
+        "controller": "document",
+        "action": "create",
+        "index": "customer-index",
+        "collection": "triggeredAlarm",
+        "body":{
+          "device_id": "{device._id}",
+          "message": "Ouch {device_id} is dead. Last time we saw it alive was {timestamp}"
+        }
+      }
+    }
+  ]
+}

@@ -1,4 +1,4 @@
- Feature: Alarm trigerring
+ Feature: Threshold Alarm
 
    Scenario: Add a new alarm rule (High Threshold)
     Given a 'customer-index':'alarms' index and collection
