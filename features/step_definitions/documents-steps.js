@@ -42,7 +42,7 @@ Given('a certain number of documents in {string}:{string}', async function (inde
 });
 
 When(/a (timestamped )?document is created in '(.*)':'(.*)' with a body containing:/, async function (timed, index, collection, table) {
-  const data = helpers._parseTable(table.rowsHash());
+  const data = helpers.parseTable(table.rowsHash());
   if (timed) {
     data.timestamp = Date.now();
   }
@@ -50,7 +50,7 @@ When(/a (timestamped )?document is created in '(.*)':'(.*)' with a body containi
 });
 
 When(/I wait for (\d+) second(?:s)?/, async function (ms) {
-  await helpers._sleep(ms);
+  await helpers.sleep(ms);
 });
 
 /**
@@ -65,7 +65,7 @@ Then('a document should be created in {string}:{string} with the following body 
 
   await this.kuzzle.realtime.subscribe(index, collection, {}, notif => { receivedNotif = notif; });
   for (let i = 40; i > 0 & !receivedNotif; i--) {
-    await helpers._sleep(100);
+    await helpers.sleep(100);
   }
 
   if (!receivedNotif) {

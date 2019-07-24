@@ -7,7 +7,7 @@ Given('an alarm named {string}', async function (name) {
 });
 
 Given('the following condition for this alarm:', async function (table) {
-  const condition = helpers._parseTable(table.rowsHash());
+  const condition = helpers.parseTable(table.rowsHash());
   this.props.alarm.condition = condition;
 });
 
@@ -15,7 +15,7 @@ Given('the following action for this alarm:', async function (table) {
   if (!this.props.alarm.actions) {
     this.props.alarm.actions = [];
   }
-  const action = helpers._parseTable(table.rowsHash()).action;
+  const action = helpers.parseTable(table.rowsHash()).action;
   this.props.alarm.actions.push(action);
 });
 
